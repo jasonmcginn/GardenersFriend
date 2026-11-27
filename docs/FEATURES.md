@@ -77,5 +77,6 @@ Status: **v0.1** = in the starter app · **Next** = good next step · **Later** 
 
 ### Platform
 - v0.1 Runs in any browser, JSON backup/restore.
-- Next Installable PWA for phone use in the garden; offline.
+- Done PC server + Android app, synced over Wi-Fi with no internet; install, pair and update from Settings.
+- Next Windows package (one .exe, no Node download), like Field Service Ops.
 - Later Multi-device sync, accounts, sharing with a friend (see ARCHITECTURE.md).

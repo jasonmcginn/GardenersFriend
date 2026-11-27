@@ -1,0 +1,19 @@
+# Checks every change: the code parses, the server's sync merge works, and the phone page builds.
+name: Check
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - name: Syntax
+        run: for f in app/js/*.js server/*.js mobile/*.js; do node --check "$f"; done
+      - name: Server tests
+        run: node server/test.js
+      - name: Phone page builds
+        run: cd mobile && node build-www.js

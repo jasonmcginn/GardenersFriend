@@ -1,6 +1,6 @@
 # Data model (v0.1)
 
-All records carry `id`, `created`, `updated`. Dates are `YYYY-MM-DD`. Units are metric.
+All records carry `id`, `created`, `updated`, and for sync `_at` (edit time, on the PC's clock) and `_dev` (the device that made the edit). Dates are `YYYY-MM-DD`. Units are metric.
 Definitions live in `app/js/schema.js`; this file mirrors them.
 
 ```
@@ -35,5 +35,9 @@ schedules ──< plants     (schedule.rows[].doses keyed by inventory id)
 
 ## Storage
 
-v0.1: one JSON object in `localStorage['gardenersFriend.v1']`, `{zones:[...], plants:[...], ..., meta:{version}}`.
+Each device: `localStorage['gardenersFriend.v1']` = `{v:2, data:{table:[...]}, base, outbox, since, lastSync, review}`.
+The PC: `server/data/db.json` = `{instance, seq, recs:{"table/id":{rec, seq, at}}, devices, pairReqs}`; a deleted record
+keeps `rec: null` so other devices learn about the delete. Schedule steps carry an `id` so they merge one by one.
+
+Before sync (v0.1): one JSON object in `localStorage['gardenersFriend.v1']`, `{zones:[...], plants:[...], ..., meta:{version}}`.
 When moving to a database each entity becomes a table; `schedule.rows` becomes `schedule_rows` + `schedule_doses`.

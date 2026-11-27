@@ -18,3 +18,12 @@ GEMINI.md
 .cursor/
 .github/copilot-instructions.md
 .aider*
+
+# Server: data, certificates, portable Node, downloaded phone app
+server/data/
+server/node/
+server/downloads/
+# Phone build output
+mobile/node_modules/
+mobile/www/
+mobile/android/

@@ -4,7 +4,7 @@
 Local-first app with plants, zones, logs, feed schedules, calculator, inventory, lights, soil, yield, history, backup.
 
 ## Phase 2 — Daily use
-- Installable PWA, works offline on phone
+- Done: phone app and PC sync over Wi-Fi, installed and paired from Settings, updates from the PC
 - Photos on log entries
 - Week-based schedules that advance automatically; feed/feed/water rotation
 - pH/EC out-of-range warnings; PPM ↔ EC
