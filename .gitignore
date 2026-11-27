@@ -1,0 +1,20 @@
+# Personal data exported from the app — never commit
+gardeners-friend-backup-*.json
+*.backup.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# AI assistant context files — kept locally, not published
+CLAUDE.md
+CLAUDE.local.md
+**/CLAUDE.md
+.claude/
+AGENTS.md
+GEMINI.md
+.cursorrules
+.cursor/
+.github/copilot-instructions.md
+.aider*
