@@ -1,6 +1,6 @@
 # Gardener's Friend — project context
 
-A web-based plant and garden manager for one grower (Jason McGinn). It tracks plants from seed to harvest
+A web-based plant and garden manager for a home grower. It tracks plants from seed to harvest
 and everything around them: watering, feeding, nutrients, pH/EC, soil, lights, inventory, yield and history.
 
 GitHub: https://github.com/jasonmcginn/GardenersFriend
@@ -51,7 +51,7 @@ Dashboard (due tasks, low stock, lamp life, recent activity) · Plants (+ detail
 log it to a plant, deduct stock) · History (filterable log + chart) · Inventory (low-stock flag)
 · Lights (hours used, lamp life %, DLI) · Soil (mixes, soil tests, amendments) · Yield (harvests, totals, g/W) · Backup.
 
-## Open decisions (ask Jason before choosing)
+## Open decisions (ask the repo owner before choosing)
 
 - Hosting: stay local-first + PWA, or move to a backend (see ARCHITECTURE.md options A–C).
 - Multi-device sync and phone use in the garden.

@@ -1,0 +1,8 @@
+# Personal data exported from the app — never commit
+gardeners-friend-backup-*.json
+*.backup.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/

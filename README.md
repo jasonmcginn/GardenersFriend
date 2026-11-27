@@ -33,3 +33,9 @@ See `docs/` for the feature plan, data model, architecture options and roadmap.
 ## License
 
 GNU GPL v3, see `LICENSE`.
+
+## Privacy
+
+The app keeps all your data in your own browser; nothing is sent anywhere and none of it is stored in this
+repository. Backup files you export (`gardeners-friend-backup-*.json`) are ignored by git so they don't end up
+in this public repo by accident. The sample data is made up.
