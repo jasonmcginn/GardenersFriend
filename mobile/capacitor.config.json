@@ -1,0 +1,7 @@
+{
+  "appId": "com.netstate.gardenersfriend",
+  "appName": "Gardener's Friend",
+  "webDir": "www",
+  "server": { "androidScheme": "http" },
+  "android": { "allowMixedContent": false }
+}

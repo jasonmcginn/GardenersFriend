@@ -27,10 +27,10 @@ GF.loadSample = () => {
   const sched = save('schedules', {
     name: 'Fruiting veg – liquid feed', notes: 'Half strength for seedlings. Flush the last week.',
     rows: [
-      { label: 'Seedling', stage: 'Seedling', phMin: 5.8, phMax: 6.2, ec: 0.6, doses: { [grow.id]: 0.5, [calmag.id]: 0.5 } },
-      { label: 'Veg', stage: 'Vegetative', phMin: 5.8, phMax: 6.3, ec: 1.2, doses: { [grow.id]: 2, [calmag.id]: 1 } },
-      { label: 'Flower / fruit', stage: 'Flowering / fruiting', phMin: 6.0, phMax: 6.5, ec: 1.6, doses: { [grow.id]: 1, [bloom.id]: 2, [calmag.id]: 1 } },
-      { label: 'Flush', stage: 'Ripening', phMin: 6.0, phMax: 6.5, ec: 0.2, doses: {} }
+      { id: 'r661', label: 'Seedling', stage: 'Seedling', phMin: 5.8, phMax: 6.2, ec: 0.6, doses: { [grow.id]: 0.5, [calmag.id]: 0.5 } },
+      { id: 'r7784', label: 'Veg', stage: 'Vegetative', phMin: 5.8, phMax: 6.3, ec: 1.2, doses: { [grow.id]: 2, [calmag.id]: 1 } },
+      { id: 'r2073', label: 'Flower / fruit', stage: 'Flowering / fruiting', phMin: 6.0, phMax: 6.5, ec: 1.6, doses: { [grow.id]: 1, [bloom.id]: 2, [calmag.id]: 1 } },
+      { id: 'r3890', label: 'Flush', stage: 'Ripening', phMin: 6.0, phMax: 6.5, ec: 0.2, doses: {} }
     ]
   });
 

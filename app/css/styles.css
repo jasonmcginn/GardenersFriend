@@ -140,3 +140,17 @@ dialog::backdrop { background: #1b2a1f66; }
   .stack td:empty { display: none; }
   .filters .fld, .logit .fld { width: 100%; }
 }
+
+/* sync & settings */
+.syncpill { display: block; margin: 0 8px 14px; padding: 6px 10px; border-radius: 99px; background: #ffffff1f; color: #e9f3e7; font-size: 13px; text-decoration: none; text-align: center; }
+.syncpill::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sprout); margin-right: 7px; vertical-align: 1px; }
+.syncpill.warn::before { background: #f2b84b; } .syncpill.off::before { background: #a9c7ad; }
+.pairgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 20px; margin-bottom: 8px; }
+.pairgrid h3 { margin-top: 0; }
+.qr { display: block; width: 180px; height: 180px; border: 1px solid var(--line); border-radius: 8px; }
+.devlist { list-style: none; margin: 0; padding: 0; }
+.devlist li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.code { font-family: ui-monospace, Consolas, monospace; letter-spacing: .04em; }
+.big-code { font: 700 34px/1.1 ui-monospace, Consolas, monospace; letter-spacing: .12em; color: var(--leaf); margin: 8px 0; }
+.btn[disabled] { opacity: .6; cursor: default; }
+@media (max-width: 860px) { .syncpill { display: inline-block; margin: 8px 0 0; } }

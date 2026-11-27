@@ -1,6 +1,12 @@
 # Architecture and options
 
-## Now: local-first, no build
+## Decided (Nov 27, 2026): PC server + phone app, synced over Wi-Fi
+
+Like Field Service Ops: a small Node server on the PC is the hub; the phone app (Android, Capacitor) and any browser keep
+their own copy and sync with it. Entirely offline: no cloud, no account. Details in [PHONE-AND-SYNC.md](PHONE-AND-SYNC.md).
+The options below are kept for reference.
+
+## Before that: local-first, no build
 
 Plain HTML, CSS and JavaScript. Runs from the file system. Data in localStorage, JSON backup.
 Why: zero setup, nothing to host, fast to change while the feature set settles.

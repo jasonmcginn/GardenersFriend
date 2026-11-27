@@ -1,0 +1,79 @@
+# Builds the Gardener's Friend phone app (Android) from the same code as the PC version, signs it with the app's key
+# (GF_SIGNING_PFX / GF_SIGNING_PASS secrets) so each version installs over the last, and publishes it as the
+# "phone-latest" release: GardenersFriend.apk. The PC downloads it once (server\get-phone-app.bat) and hands it to phones.
+name: Phone app (Android)
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", "mobile/**", "server/bundle.js", ".github/workflows/phone-app.yml"]
+  pull_request:
+    paths: ["mobile/**", ".github/workflows/phone-app.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - name: Phone project
+        working-directory: mobile
+        run: |
+          npm install --no-audit --no-fund
+          node build-www.js
+          npx cap add android
+          npx cap sync android
+          M=android/app/src/main/AndroidManifest.xml
+          # The app's own code: MainActivity registers GfTls (HTTPS to the PC, pinned to its key); no plain http to the network.
+          cp -r android-src/java/. android/app/src/main/java/
+          mkdir -p android/app/src/main/res/xml && cp android-src/res/xml/*.xml android/app/src/main/res/xml/
+          # Camera for scanning the pairing QR code.
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />#' $M
+          sed -i 's#android:supportsRtl="true"#android:supportsRtl="true"\n        android:networkSecurityConfig="@xml/network_security_config"#' $M
+          sed -i 's#</application>#    <meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="barcode_ui" />\n    </application>#' $M
+          sed -i "s/versionCode 1$/versionCode ${GITHUB_RUN_NUMBER}/; s/versionName \"1.0\"/versionName \"1.0.${GITHUB_RUN_NUMBER}\"/" android/app/build.gradle
+          grep -n "CAMERA\|networkSecurityConfig\|mlkit" $M
+          grep -n "versionCode\|versionName" android/app/build.gradle
+      - name: Build
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon -q 2>&1 | tee ../gradle.log || { tail -40 ../gradle.log | while read -r l; do echo "::error::$l"; done; exit 1; }
+      # Pull requests only check that the app builds; signing and publishing happen on main.
+      - name: Sign
+        if: github.event_name != 'pull_request'
+        working-directory: mobile
+        env:
+          KS_B64: ${{ secrets.GF_SIGNING_PFX }}
+          KS_PASS: ${{ secrets.GF_SIGNING_PASS }}
+          EXPECTED_CERT: ${{ vars.GF_SIGNING_CERT_SHA256 }}
+        run: |
+          [ -n "$KS_B64" ] && [ -n "$KS_PASS" ] || { echo "::error::The signing secrets GF_SIGNING_PFX and GF_SIGNING_PASS aren't set (Settings > Secrets and variables > Actions). See mobile/README.md."; exit 1; }
+          KS="$RUNNER_TEMP/gf-signing.pfx"
+          trap 'rm -f "$KS"' EXIT
+          K=$(printf '%s' "$KS_B64" | tr -d ' \r\n\t')
+          printf '%s' "$K" | base64 -d > "$KS" 2>/dev/null || { echo "::error::GF_SIGNING_PFX isn't valid base64 key text."; exit 1; }
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          U=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          $BT/zipalign -p -f 4 $U aligned.apk
+          $BT/apksigner sign --ks "$KS" --ks-type PKCS12 --ks-pass env:KS_PASS --out GardenersFriend.apk aligned.apk
+          $BT/apksigner verify --print-certs GardenersFriend.apk > verify.txt
+          GOT=$(sed -n 's/^.*[Ss]igner.*certificate SHA-256 digest: //p' verify.txt | head -1)
+          echo "Signed with certificate SHA-256 $GOT"
+          if [ -n "$EXPECTED_CERT" ] && [ "$GOT" != "$EXPECTED_CERT" ]; then echo "::error::Signed with $GOT, but GF_SIGNING_CERT_SHA256 says $EXPECTED_CERT. Check the GF_SIGNING_PFX secret."; exit 1; fi
+          ls -la GardenersFriend.apk
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with: { name: GardenersFriend-apk, path: mobile/GardenersFriend.apk }
+      - name: Publish as the phone-latest release
+        if: github.ref == 'refs/heads/main'
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          N="Phone app 1.0.${GITHUB_RUN_NUMBER}"
+          gh release view phone-latest >/dev/null 2>&1 || gh release create phone-latest --title "$N" --notes "Gardener's Friend phone app (Android). On the PC run server\\get-phone-app.bat, then scan the QR code in Settings. Each version installs over the last and keeps the phone's data." --latest=false
+          gh release edit phone-latest --title "$N" --target "$GITHUB_SHA"
+          gh release upload phone-latest mobile/GardenersFriend.apk --clobber

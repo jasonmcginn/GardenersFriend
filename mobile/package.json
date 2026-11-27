@@ -1,0 +1,19 @@
+{
+  "name": "gardeners-friend-phone",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Gardener's Friend phone app: the whole app packaged for Android, with its own offline copy of the data. Pairs and syncs with the PC on the same Wi-Fi.",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "www": "node build-www.js",
+    "sync": "npm run www && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.3",
+    "@capacitor/core": "6.2.3",
+    "@capacitor-mlkit/barcode-scanning": "6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.3"
+  }
+}

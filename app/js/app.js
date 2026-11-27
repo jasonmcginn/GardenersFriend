@@ -17,7 +17,8 @@ window.GF = window.GF || {};
     lights: V.list('lights', 'Hours used and lamp life count from the install date. DLI = daily light integral in mol/m²/day.'),
     soil: V.soil,
     yield: V.yield,
-    backup: V.backup
+    settings: (root) => V.settings(root),
+    backup: (root) => V.settings(root)
   };
 
   const main = document.getElementById('view');
@@ -25,7 +26,8 @@ window.GF = window.GF || {};
   function render() {
     const [name, param] = (location.hash.slice(1) || 'dashboard').split('/');
     const fn = routes[name] || routes.dashboard;
-    const navName = name === 'plant' ? 'plants' : (routes[name] ? name : 'dashboard');
+    const navName = name === 'plant' ? 'plants' : name === 'backup' ? 'settings' : (routes[name] ? name : 'dashboard');
+    if (navName !== 'settings' && GF.leaveSettings) GF.leaveSettings();
     document.querySelectorAll('nav a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + navName));
     try {
       fn(main, param);
@@ -41,6 +43,34 @@ window.GF = window.GF || {};
   window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
 
   const DATED = ['logs', 'harvests', 'soilTests', 'amendments'];
+  const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const SETTINGS_ACTS = new Set(['syncnow', 'clearreview', 'pairaccept', 'pairdecline', 'devremove', 'unpair', 'paircancel', 'changeaddr', 'scanqr', 'checkupdate', 'installupdate']);
+  GF.render = () => render();
+
+  // Sync status in the sidebar, and redrawing when another device's changes arrive.
+  const pill = document.getElementById('syncPill');
+  function showPill(s) {
+    if (!pill) return;
+    const m = GF.sync.mode(), st = S.syncState();
+    let txt, cls = '';
+    if (m === 'alone') { txt = GF.sync.NATIVE ? 'Not paired with a PC' : (GF.sync.SERVED ? 'Not paired' : 'Saved in this browser'); cls = 'off'; }
+    else if (s.syncing) txt = 'Syncing…';
+    else if (s.update) { txt = 'App update ready'; cls = 'warn'; }
+    else if (!s.online && (s.error || st.lastSync)) { txt = st.pending ? `${st.pending} change${st.pending > 1 ? 's' : ''} waiting` : 'PC not reachable'; cls = 'warn'; }
+    else if (st.pending) txt = `${st.pending} to sync`;
+    else txt = st.lastSync ? 'Synced' : 'Connecting…';
+    pill.textContent = txt; pill.className = 'syncpill ' + cls;
+  }
+  GF.sync.on(showPill);
+  S.on((kind) => {
+    if (kind !== 'remote') return;
+    const dlg = document.getElementById('dlg');
+    const busy = dlg.open || (document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && main.contains(document.activeElement));
+    if (busy) { pendingRedraw = true; return; }
+    render();
+  });
+  let pendingRedraw = false;
+  document.getElementById('dlg').addEventListener('close', () => { if (pendingRedraw) { pendingRedraw = false; setTimeout(render, 0); } });
 
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-act],[data-close],[data-menu]');
@@ -48,6 +78,7 @@ window.GF = window.GF || {};
     if (b.hasAttribute('data-close')) { document.getElementById('dlg').close(); return; }
     if (b.hasAttribute('data-menu')) { document.body.classList.toggle('menu-open'); return; }
     const { act, t, id } = b.dataset;
+    if (SETTINGS_ACTS.has(act)) { GF.settingsAct(act, b); return; }
     switch (act) {
       case 'add': {
         const pre = {};
@@ -80,7 +111,7 @@ window.GF = window.GF || {};
       case 'addrow': {
         const s = S.get('schedules', id); s.rows = s.rows || [];
         const prev = s.rows[s.rows.length - 1];
-        s.rows.push({ label: 'Step ' + (s.rows.length + 1), stage: prev ? prev.stage : 'Vegetative', phMin: prev ? prev.phMin : 5.8, phMax: prev ? prev.phMax : 6.5, ec: '', doses: prev ? { ...prev.doses } : {} });
+        s.rows.push({ id: rid(), label: 'Step ' + (s.rows.length + 1), stage: prev ? prev.stage : 'Vegetative', phMin: prev ? prev.phMin : 5.8, phMax: prev ? prev.phMax : 6.5, ec: '', doses: prev ? { ...prev.doses } : {} });
         S.save('schedules', s); render(); break;
       }
       case 'delrow': {
@@ -105,7 +136,7 @@ window.GF = window.GF || {};
         break;
       }
       case 'seed':
-        if (!S.isEmpty() && !confirm('Add sample data alongside what you already have?')) return;
+        if (!S.isEmpty() && !confirm('Add sample data alongside what you already have?' + (GF.sync.mode() !== 'alone' ? ' It will sync to your other devices too.' : ''))) return;
         GF.loadSample(); location.hash = '#dashboard'; render(); break;
       case 'export': {
         const blob = new Blob([S.exportJSON()], { type: 'application/json' });
@@ -115,7 +146,7 @@ window.GF = window.GF || {};
         break;
       }
       case 'clear':
-        if (confirm('Delete ALL data in Gardener\'s Friend? Export a backup first if you might want it.')) { S.reset(); render(); }
+        if (confirm('Delete ALL data in Gardener\'s Friend' + (GF.sync.mode() !== 'alone' ? ', on this device AND every synced device' : '') + '? Export a backup first if you might want it.')) { S.reset(); render(); }
         break;
     }
   });
@@ -124,6 +155,7 @@ window.GF = window.GF || {};
     const el = e.target, d = el.dataset;
     if (d.sched) {
       const s = S.get('schedules', d.sched); const r = s && s.rows[+d.row]; if (!r) return;
+      if (!r.id) r.id = rid();
       if (d.dose) { r.doses = r.doses || {}; const v = GF.num(el.value); if (v == null) delete r.doses[d.dose]; else r.doses[d.dose] = v; }
       else r[d.field] = ['phMin', 'phMax', 'ec'].includes(d.field) ? GF.num(el.value) : el.value;
       S.save('schedules', s);
@@ -136,7 +168,7 @@ window.GF = window.GF || {};
     else if (d.ui === 'showArchived') { GF.state.showArchived = el.checked; render(); }
     else if (el.id === 'importFile' && el.files[0]) {
       el.files[0].text().then(txt => {
-        if (!confirm('Replace all current data with this backup?')) return;
+        if (!confirm('Replace all current data with this backup?' + (GF.sync.mode() !== 'alone' ? ' This also replaces it on every synced device.' : ''))) return;
         try { S.importJSON(txt); alert('Backup imported.'); render(); }
         catch (err) { alert('That file could not be imported: ' + err.message); }
       });
@@ -144,4 +176,6 @@ window.GF = window.GF || {};
   });
 
   render();
+  GF.sync.start();
+  showPill(GF.sync.status);
 })();

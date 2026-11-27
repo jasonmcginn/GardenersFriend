@@ -1,0 +1,12 @@
+<script>/* Gardener's Friend phone app: starts the version the PC sent (Settings › Install and restart) instead of the one built into the app. */
+(function(){try{var REV="__REV__";window.GF_BUNDLE_REV=REV;
+if(window.__gfOta||/[?&]noota=1/.test(location.search))return;
+var o=null;try{o=JSON.parse(localStorage.getItem("gf.ota")||"null")}catch(e){}
+if(!o||!o.rev||o.rev===REV)return;
+if(o.bundle!==REV){localStorage.removeItem("gf.ota");return;}
+document.write('<plaintext style="display:none">');
+var fail=function(){try{localStorage.removeItem("gf.ota")}catch(e){}location.replace(location.pathname+"?noota=1"+location.hash)};
+var r=indexedDB.open("gf-ota",1);r.onupgradeneeded=function(){r.result.createObjectStore("f")};r.onerror=fail;
+r.onsuccess=function(){try{var g=r.result.transaction("f").objectStore("f").get("html");g.onerror=fail;
+g.onsuccess=function(){var h=g.result;if(!h||h.indexOf(o.rev)<0)return fail();window.__gfOta=o.rev;setTimeout(function(){document.open();document.write(h);document.close()},0)}}catch(e){fail()}};
+}catch(e){}})();</script>

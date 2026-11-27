@@ -265,19 +265,4 @@ window.GF = window.GF || {};
       <section class="card"><div class="cardhead"><h2>Soil & media mixes</h2>${addBtn('mixes', 'Add mix')}</div>${U.table('mixes', S.all('mixes').slice().sort(byName))}</section>`;
   };
 
-  // ---------- backup ----------
-  V.backup = root => {
-    const counts = Object.entries(GF.schema.entities).map(([t, d]) => `<li><span>${esc(d.label)}</span><b>${S.all(t).length}</b></li>`).join('');
-    root.innerHTML = head('Backup & data', '', 'Everything is saved in this browser only. Export a backup regularly, and use it to move your data to another computer or browser.') + `
-      <div class="cols">
-        <section class="card"><h2>Backup</h2>
-          <div class="row"><button class="btn primary" data-act="export">Export backup (.json)</button>
-          <label class="btn" for="importFile">Import backup…</label><input type="file" id="importFile" accept=".json,application/json" hidden></div>
-          <p class="muted small">Importing replaces everything currently in the app.</p>
-          <h2>Start fresh</h2>
-          <div class="row"><button class="btn" data-act="seed">Load sample data</button><button class="btn danger" data-act="clear">Delete all data</button></div>
-        </section>
-        <section class="card"><h2>What's stored</h2><ul class="counts">${counts}</ul></section>
-      </div>`;
-  };
 })();
